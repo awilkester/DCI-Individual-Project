@@ -1,0 +1,131 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    background-color: #FEA443;
+    background-image: linear-gradient(#FEA443, #F3FEB0);
+    padding: 0px;
+    margin: 0px;
+    position: relative;
+    min-height: 100%;
+    min-height: 100vh;
+    text-align: center;
+}
+
+h1 {
+    text-align: center;
+}
+
+p {
+    text-align: center;
+}
+
+#nav {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0px;
+    background-color: #A5AAA3;
+    font-size: 1.25em;
+}
+
+#nav a {
+  text-decoration: none;
+  display: block;
+  padding: 1em;
+  color: white;
+  border: 1px white;
+}
+
+#nav a:hover {
+  background: #705E78;
+}
+
+@media all and (max-width: 800px) {
+  #nav {
+    justify-content: space-around;
+  }
+}
+
+@media all and (max-width: 600px) {
+  #nav {
+    flex-flow: column wrap;
+    padding: 0;
+  }
+  #nav a {
+    text-align: center;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255,1);
+    border-bottom: 1px solid rgba(0, 0, 0, 1);
+  }
+  #nav li:last-of-type a {
+    border-bottom: none;
+  }
+}
+
+.flex-list {
+  display: flex;
+  background-color: #A5AAA3;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.flex-item{
+    background-color: #812F33;
+    padding: 5px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: white;
+    border: 1px white;
+}
+
+.flex-footer {
+  display: flex;
+  background-color: #A5AAA3;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.flex-f{
+    padding: 0px;
+    font-weight: bold;
+    color:white;
+    margin-top: 2px;
+    margin-bottom: 0px;
+    top: 50%;
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+table {
+    padding: 5px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th, td {
+    background-color: #A5AAA3;
+    color: white;
+}
+
+td {
+    text-align: center;
+}
+
+footer {
+  position: absolute;
+  right: 0;bottom:0;left:0;
+}
