@@ -2,15 +2,15 @@
 <html>
 <head>
     <title>Andrew's Individual Project</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="flex.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="main">
-        <div>
+    <div class="wrapper">
+        <div class="header">
             <ul id="nav">
                 <li><a href="default.asp">Home</a></li>
                 <li><a href="news.asp">News</a></li>
@@ -18,62 +18,65 @@
                 <li><a href="about.asp">About</a></li>
             </ul>
 
+        </div>
+
+        <hr>
+
+        <div class="main">
             <h1>Andrew's Warehouse Management System</h1>
+
+            <div>
+
+                <p>You can find information on this page related to the best warehouse management system around.</p>
+
+                <p>If you gotta track 'em all, you gotta use Andrew's Warehouse Management System!</p>
+
+                <p>More information coming soon.</p>
+
+            </div>
+
+            <hr>
+
+            <div>
+                <h2>
+                    The following is a list of features this project will attempt to fulfill.
+                </h2>
+            </div>
+
+            <ul class="flex-list">
+                <li class="flex-item">A user system with roles and permissions for listing and placing orders</li>
+                <li class="flex-item">Maintains the stock of a warehouse</li>
+                <li class="flex-item">Orders items from the warehouse</li>
+                <li class="flex-item">Logs actions from the users</li>
+                <li class="flex-item">Reporting</li>
+            </ul>
+
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Power</th>
+                    <th>Speed</th>
+                    <th>Reliability</th>
+                </tr>
+                <tr>
+                    <th>Andrew's Product</th>
+                    <th>^</th>
+                    <th>^</th>
+                    <th>^</th>
+                </tr>
+                <tr>
+                    <th>The Competition</th>
+                    <th>v</th>
+                    <th>v</th>
+                    <th>v</th>
+                </tr>
+            </table>
         </div>
-
-        <hr>
-
-        <div>
-
-            <p>You can find information on this page related to the best warehouse management system around.</p>
-
-            <p>If you gotta track 'em all, you gotta use Andrew's Warehouse Management System!</p>
-
-            <p>More information coming soon.</p>
-
-        </div>
-
-        <hr>
-
-        <div>
-            <h2>
-                The following is a list of features this project will attempt to fulfill.
-            </h2>
-        </div>
-
-        <ul class="flex-list">
-            <li class="flex-item">A user system with roles and permissions for listing and placing orders</li>
-            <li class="flex-item">Maintains the stock of a warehouse</li>
-            <li class="flex-item">Orders items from the warehouse</li>
-            <li class="flex-item">Logs actions from the users</li>
-            <li class="flex-item">Reporting</li>
-        </ul>
-
-        <table>
-            <tr>
-                <th></th>
-                <th>Power</th>
-                <th>Speed</th>
-                <th>Reliability</th>
-            </tr>
-            <tr>
-                <th>Andrew's Product</th>
-                <th>^</th>
-                <th>^</th>
-                <th>^</th>
-            </tr>
-            <tr>
-                <th>The Competition</th>
-                <th>v</th>
-                <th>v</th>
-                <th>v</th>
-            </tr>
-        </table>
     </div>
 
 </body>
 
-<footer class="flex-footer">
+<footer class="footer">
     <img class="flex-f" src="dhta.png" alt="Delivery Hero Tech Academy">
 
     <div class="flex-f">
