@@ -3,6 +3,7 @@ package main.java.intro;
 import static main.java.intro.Repository.WAREHOUSE1;
 import static main.java.intro.Repository.WAREHOUSE2;
 
+import java.util.HashSet;
 import java.util.Scanner;
 
 /**
@@ -35,22 +36,36 @@ public class TheWarehouseManager {
 
     /** Ask for user's choice of action */
     public int getUsersChoice() {
-        // TODO
+    System.out.println("Your options are: \n" + userOptions);
+    return reader.nextInt();
     }
 
     /** Initiate an action based on given option */
     public void performAction(int option) {
-        // TODO
+        System.out.println( "You've selected option " + option + ", is that what you wanted? Enter 'yes' to continue.");
+    if (reader.nextLine().charAt(0) == 'y') {
+      if (option == 1) {
+        listItemsByWarehouse();
+      } else if (option == 2) {
+        searchItemAndPlaceOrder();
+      } else if (option == 3) {
+        quit();
+      } else {
+        System.out.println("Sorry, you've selected an invalid option. Please try again.");
+      }
+      }else{getUsersChoice();}
     }
 
-    /**
-     * Confirm an action
-     *
-     * @return action
-     */
-    public boolean confirm(String message) {
-        // TODO
-    }
+  /**
+   * Confirm an action
+   *
+   * @return action
+   */
+  public boolean confirm() {
+    System.out.println("Do you want to perform another action?\n"
+            + "Type 'yes' to continue, and 'no' to quit.");
+      return reader.nextLine().charAt(0) == 'y';
+  }
 
     /** End the application */
     public void quit() {
@@ -64,33 +79,64 @@ public class TheWarehouseManager {
 
     /** Get user's name via CLI */
     private void seekUserName() {
-        // TODO
+    System.out.println("Welcome to Andrew's Warehouse Manager App. Please input your name to continue: ");
+    userName = reader.nextLine();
     }
 
     /** Print a welcome message with the given user's name */
     private void greetUser() {
-        // TODO
+    System.out.println("Hello " + userName + "!");
     }
 
-    private void listItemsByWarehouse() {
-        // TODO
+  private void listItemsByWarehouse() {
+        listItems(WAREHOUSE1);
+        listItems(WAREHOUSE2);
+    quit();
     }
 
-    private void listItems(String[] warehouse) {
-        // TODO
+  private void listItems(String[] warehouse) {
+    System.out.println("Items in Warehouse " + warehouse + ": ");
+    for (String y : warehouse) {
+      System.out.println(y);
     }
+        }
 
     private void searchItemAndPlaceOrder() {
-        // TODO
+    // TODO
+    System.out.println("You've selected to search for an item and place an order for it.");
+    String itemName = askItemToOrder();
+    int availableInW1 = (find(itemName, WAREHOUSE1));
+    int availableInW2 = (find(itemName, WAREHOUSE2));
+    if(availableInW1 > 0 && availableInW2 > 0){
+        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in both warehouses.");
+        if(availableInW1 > availableInW2){
+            System.out.println("Warehouse 1 has more " + itemName + "s than warehouse 2, at " + availableInW1 +" items.");
+        } else if(availableInW1 < availableInW2){
+            System.out.println("Warehouse 1 has more " + itemName + "s than warehouse 2, at " + availableInW1 +" items.");
+        } else{
+            System.out.println("Both warehouses have the same number of " + itemName + "s, at " + availableInW1);
+        }
+
+    } else if(availableInW1 > 0 && availableInW2 == 0){
+        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in Warehouse 1. ");
+
+    } else if(availableInW1 == 0 && availableInW2 > 0){
+        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in Warehouse 2. ");
+        askItemToOrder();
+    } else {
+      System.out.println("Sorry, that item is not found in our warehouses.");
+      quit();
     }
 
-    /**
-     * Ask the user to specify an Item to Order
-     *
-     * @return String itemName
-     */
-    private String askItemToOrder() {
-        // TODO
+
+    }
+
+  /**
+   * @return String itemName
+   */
+  private String askItemToOrder() {
+    System.out.println("Please input the item you'd like to search for: ");
+    return reader.nextLine();
     }
 
     /**
@@ -100,7 +146,7 @@ public class TheWarehouseManager {
      * @return integer availableCount
      */
     private int getAvailableAmount(String itemName) {
-        // TODO
+        return find(itemName, WAREHOUSE1) + find(itemName,WAREHOUSE2);
     }
 
     /**
@@ -111,12 +157,26 @@ public class TheWarehouseManager {
      * @return count
      */
     private int find(String item, String[] warehouse) {
-        // TODO
+        int count = 0;
+        for(String x: warehouse){
+            if(item == x){
+                count++;
+            }
+        }
+        return count;
     }
 
     /** Ask order amount and confirm order */
     private void askAmountAndConfirmOrder(int availableAmount, String item) {
         // TODO
+        System.out.println("How many would you like to order? Please enter a whole positive number.");
+        int orderAmount = reader.nextInt();
+        if(orderAmount <= availableAmount){
+            getOrderAmount(orderAmount);
+        } else {
+            System.out.println("Sorry, your order value is more than we have currently available. \n" +
+                    "Would you like to order the maximum available instead?");
+        }
     }
 
     /**
@@ -126,6 +186,26 @@ public class TheWarehouseManager {
      * @return
      */
     private int getOrderAmount(int availableAmount) {
-        // TODO
+        System.out.println("How many would you like to order? Please enter a whole positive number.");
+        return reader.nextInt();
     }
+
+    /*
+
+    make a linkedhashset or treeset so I can save the order
+     Cool method to count inventory before asking for it
+        HashSet<String> wHouse1 = new HashSet<>(WAREHOUSE1.length);
+
+        HashSet<String> wHouse2 = new HashSet<>(WAREHOUSE2.length);
+        for (String x :WAREHOUSE1){
+            wHouse1.add(x);
+        }
+        for (String y :WAREHOUSE2){
+            wHouse2.add(y);
+        }
+        for(int i= 0; i < wHouse1.size(); i++){
+
+        }
+        */
+
 }
