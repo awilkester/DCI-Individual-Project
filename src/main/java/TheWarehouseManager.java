@@ -1,10 +1,10 @@
-package main.java.intro;
+package main.java;
 
-import static main.java.intro.Repository.WAREHOUSE1;
-import static main.java.intro.Repository.WAREHOUSE2;
-
-import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+
+import static main.java.Repository.*;
 
 /**
  * Provides necessary methods to deal through the Warehouse management actions
@@ -88,21 +88,30 @@ public class TheWarehouseManager {
     System.out.println("Hello " + userName + "!");
     }
 
+  /**
+   * It should use the Repository.getWarehouses() method, which should
+   * return a Set<Integer>. This set represents a set of IDs of each warehouse.
+   *
+   * With those IDs, you should call the method Repository.getItemsByWarehouse(warehouse) on each
+   * to retrieve a List<Item>. Finally, you should print each item.
+   */
   private void listItemsByWarehouse() {
-        listItems(WAREHOUSE1);
-        listItems(WAREHOUSE2);
+      Set x = getWarehouses();
+      for(int i = 0; i < x.size(); i++) {
+        List<Item> items = getItemsByWarehouse(i);
+        listItems(i, items);
+      }
     quit();
     }
 
-  private void listItems(String[] warehouse) {
+  private void listItems(int warehouse, List<Item> x) {
     System.out.println("Items in Warehouse " + warehouse + ": ");
-    for (String y : warehouse) {
-      System.out.println(y);
-    }
-        }
+      for (Item z: x){
+          System.out.println(z.getState() + z.getCategory());
+      }
+  }
 
     private void searchItemAndPlaceOrder() {
-    // TODO
     System.out.println("You've selected to search for an item and place an order for it.");
     String itemName = askItemToOrder();
     int availableInW1 = (find(itemName, WAREHOUSE1));
