@@ -1,10 +1,13 @@
 package main.java;
 
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
+import main.java.data.Item;
 
-import static main.java.Repository.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static main.java.data.Repository.*;
 
 /**
  * Provides necessary methods to deal through the Warehouse management actions
@@ -19,7 +22,7 @@ public class TheWarehouseManager {
     // To read inputs from the console/CLI
     private final Scanner reader = new Scanner(System.in);
     private final String[] userOptions = {
-            "1. List items by warehouse", "2. Search an item and place an order", "3. Quit"
+            "1. List items by warehouse", "2. Search an item and place an order", "3. Browse by category", "4. Quit"
     };
     // To refer the user provided name.
     private String userName;
@@ -36,24 +39,33 @@ public class TheWarehouseManager {
 
     /** Ask for user's choice of action */
     public int getUsersChoice() {
-    System.out.println("Your options are: \n" + userOptions);
-    return reader.nextInt();
+    System.out.println("Your options are:");
+        for (String option : this.userOptions) {
+            System.out.println(option);
+        }
+    System.out.println("Type a number to select that option.");
+        int choice = reader.nextInt();
+        reader.nextLine();
+    return choice;
     }
 
     /** Initiate an action based on given option */
     public void performAction(int option) {
-        System.out.println( "You've selected option " + option + ", is that what you wanted? Enter 'yes' to continue.");
-    if (reader.nextLine().charAt(0) == 'y') {
-      if (option == 1) {
-        listItemsByWarehouse();
-      } else if (option == 2) {
-        searchItemAndPlaceOrder();
-      } else if (option == 3) {
-        quit();
-      } else {
-        System.out.println("Sorry, you've selected an invalid option. Please try again.");
-      }
-      }else{getUsersChoice();}
+        switch(option){
+            case 1:
+                listItemsByWarehouse();
+                break;
+            case 2:
+                searchItemAndPlaceOrder();
+                break;
+            case 3:
+                //browseByCategory();
+                break;
+            case 4:
+                quit();
+            default:
+                System.out.println("Sorry, you've selected an invalid option. Please try again.");
+        }
     }
 
   /**
@@ -101,52 +113,98 @@ public class TheWarehouseManager {
         List<Item> items = getItemsByWarehouse(i);
         listItems(i, items);
       }
+      printNumberOfItemsByWarehouse();
     quit();
     }
 
   private void listItems(int warehouse, List<Item> x) {
     System.out.println("Items in Warehouse " + warehouse + ": ");
       for (Item z: x){
-          System.out.println(z.getState() + z.getCategory());
+          System.out.println("- " + z.getState() + z.getCategory());
       }
+  }
+
+  private void printNumberOfItemsByWarehouse(){
+    System.out.println();
+    for(int x: getWarehouses()){
+      System.out.println("Total items in warehouse " + x + ": " + getItemsByWarehouse(x).size());
+    }
   }
 
     private void searchItemAndPlaceOrder() {
     System.out.println("You've selected to search for an item and place an order for it.");
     String itemName = askItemToOrder();
-    int availableInW1 = (find(itemName, WAREHOUSE1));
-    int availableInW2 = (find(itemName, WAREHOUSE2));
-    if(availableInW1 > 0 && availableInW2 > 0){
-        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in both warehouses.");
-        if(availableInW1 > availableInW2){
-            System.out.println("Warehouse 1 has more " + itemName + "s than warehouse 2, at " + availableInW1 +" items.");
-        } else if(availableInW1 < availableInW2){
-            System.out.println("Warehouse 1 has more " + itemName + "s than warehouse 2, at " + availableInW1 +" items.");
-        } else{
-            System.out.println("Both warehouses have the same number of " + itemName + "s, at " + availableInW1);
+    printAmountAvailable(itemName);
+        printLocations(itemName);
+        if(getAvailableAmount(itemName) > 0){
+            printMaximumAvailability(itemName);
+            System.out.println("Would you like to place an order for this item?");
+            if(reader.nextLine().toLowerCase().charAt(0) == 'y'){
+                askAmountAndConfirmOrder(getAvailableAmount(itemName), itemName);
+            } else{
+                quit();
         }
-
-    } else if(availableInW1 > 0 && availableInW2 == 0){
-        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in Warehouse 1. ");
-
-    } else if(availableInW1 == 0 && availableInW2 > 0){
-        System.out.println("There are " + getAvailableAmount(itemName) + " "+ itemName + "s available in Warehouse 2. ");
-        askItemToOrder();
-    } else {
-      System.out.println("Sorry, that item is not found in our warehouses.");
-      quit();
+        }else{
+            quit();}
     }
 
 
+    /**
+     *
+     * @param item
+     */
+  private void printAmountAvailable(String item){
+      System.out.println("There are " + getAvailableAmount(item) + " " + item + " available.");
+  }
+    /**
+     * If the search returns at least one result (in any warehouse),
+     *  it prints a list of all the items showing the name of the warehouse
+     *  and the number of days it has passed since they were stocked.
+     * @param item String itemName
+     */
+  private void printLocations(String item){
+    if(getAvailableAmount(item) > 0){
+        System.out.println("Location:");
+        for(Item x : getAllItems()){
+            if((x.getState() + " " + x.getCategory()).toLowerCase().equals(item)){
+                System.out.println("- Warehouse " + x.getWarehouse() + " (in stock for " + daysSinceStocked(x) +" days.)");
+            }
+        }
+    } else{
+        System.out.println("Location: Not in stock");
     }
+  }
+
+    /**
+     * It still prints the maximum availability only when the item is found in more than one warehouse.
+     * @param item String itemName
+     */
+  private void printMaximumAvailability(String item){
+      int result = 0;
+      int resultWarehouse = 0;
+        for(int i = 0; i < availableNumberPerWarehouse(item).size(); i++){
+            if(availableNumberPerWarehouse(item).get(i) > result){
+                result = availableNumberPerWarehouse(item).get(i);
+                resultWarehouse = i;
+            }
+        }
+        System.out.println("Maximum Availability: " + result + " in Warehouse " + resultWarehouse);
+  }
+
+  private long daysSinceStocked(Item item){
+      LocalDate date = LocalDate.now();
+      LocalDate itemStockDate = item.getDateOfStock().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+      return ChronoUnit.DAYS.between(itemStockDate, date);
+  }
 
   /**
    * @return String itemName
    */
   private String askItemToOrder() {
     System.out.println("Please input the item you'd like to search for: ");
-    return reader.nextLine();
+    return reader.nextLine().toLowerCase();
     }
+
 
     /**
      * Calculate total availability of the given item
@@ -155,38 +213,53 @@ public class TheWarehouseManager {
      * @return integer availableCount
      */
     private int getAvailableAmount(String itemName) {
-        return find(itemName, WAREHOUSE1) + find(itemName,WAREHOUSE2);
+        int count = 0;
+        for(int i = 0; i < getAllItems().size(); i++){
+            if((getAllItems().get(i).getState() + " " + getAllItems().get(i).getCategory()).toLowerCase().equals(itemName)){
+                count ++;
+            }
+        }
+        return count;
     }
 
     /**
      * Find the count of an item in a given warehouse
      *
-     * @param item the item
-     * @param warehouse the warehouse
+     * @param item the item (as a concatenation of the state and the category from the Item class)
+     * @param warehouse the warehouse (as an int now, from getWarehouses set)
      * @return count
      */
-    private int find(String item, String[] warehouse) {
+    private int find(String item, int warehouse) {
         int count = 0;
-        for(String x: warehouse){
-            if(item == x){
+        for(Item x: getItemsByWarehouse(warehouse)){
+            if(item.equals(x.getState().toLowerCase() + " " + x.getCategory().toLowerCase())){
                 count++;
             }
         }
         return count;
     }
 
+    /**
+     * returns a list of number of items available for a given item name per warehouse
+     * @param item
+     * @return
+     */
+    private List<Integer> availableNumberPerWarehouse(String item){
+        Set x = getWarehouses();
+        List<Integer> result = new ArrayList<>();
+        for(int i = 0; i < x.size(); i++){
+           result.add(find(item, i));
+        }
+        return result;
+    }
+
     /** Ask order amount and confirm order */
     private void askAmountAndConfirmOrder(int availableAmount, String item) {
-        // TODO
-        System.out.println("How many would you like to order? Please enter a whole positive number.");
-        int orderAmount = reader.nextInt();
-        if(orderAmount <= availableAmount){
-            getOrderAmount(orderAmount);
-        } else {
-            System.out.println("Sorry, your order value is more than we have currently available. \n" +
-                    "Would you like to order the maximum available instead?");
-        }
-    }
+        int orderAmount = getOrderAmount(availableAmount);
+        System.out.println(orderAmount + " " + item + " have been ordered.");
+        quit();
+            }
+
 
     /**
      * Get amount of order
@@ -196,25 +269,18 @@ public class TheWarehouseManager {
      */
     private int getOrderAmount(int availableAmount) {
         System.out.println("How many would you like to order? Please enter a whole positive number.");
-        return reader.nextInt();
+        int orderAmount = reader.nextInt();
+        reader.nextLine();
+        if(orderAmount > availableAmount){
+            System.out.println("Sorry, your order value is more than we have currently available. \n" +
+                    "Would you like to order the maximum available instead? (y / n)");
+            if(reader.nextLine().toLowerCase().charAt(0) == 'y'){
+                orderAmount = availableAmount;
+            }else{
+                quit();
+            }
+        }
+        return orderAmount;
     }
-
-    /*
-
-    make a linkedhashset or treeset so I can save the order
-     Cool method to count inventory before asking for it
-        HashSet<String> wHouse1 = new HashSet<>(WAREHOUSE1.length);
-
-        HashSet<String> wHouse2 = new HashSet<>(WAREHOUSE2.length);
-        for (String x :WAREHOUSE1){
-            wHouse1.add(x);
-        }
-        for (String y :WAREHOUSE2){
-            wHouse2.add(y);
-        }
-        for(int i= 0; i < wHouse1.size(); i++){
-
-        }
-        */
 
 }

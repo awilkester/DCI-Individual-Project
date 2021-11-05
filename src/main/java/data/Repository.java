@@ -1,4 +1,4 @@
-package main.java;
+package main.java.data;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -62,11 +63,12 @@ public class Repository {
      * @return the list of items
      */
     public static List<Item> getAllItems() {
-        List<Item> result = new ArrayList<>();
-        for(Item x: ITEM_LIST) {
-            result.add(x);
-        }
-        return result;
+//        List<Item> result = new ArrayList<>();
+//        for(Item x: ITEM_LIST) {
+//            result.add(x);
+//        }
+//        return result;
+        return ITEM_LIST;
     }
 
     // By Warehouse
@@ -77,7 +79,7 @@ public class Repository {
      */
     public static Set<Integer> getWarehouses() {
         HashSet<Integer> result = new HashSet<>();
-        for(Item x : ITEM_LIST) {
+        for(Item x : getAllItems()) {
             result.add(x.getWarehouse());
         }
         return result;
@@ -106,8 +108,13 @@ public class Repository {
      * @return the items
      */
     public static List<Item> getItemsByWarehouse(int warehouse, List<Item> masterList) {
-        // TODO
-        return null;
+        List<Item> result = new ArrayList<>();
+        for(Item x : masterList){
+            if(x.getWarehouse() == warehouse){
+                result.add(x);
+            }
+        }
+        return result;
     }
 
     // By Category
@@ -117,8 +124,11 @@ public class Repository {
      * @return the categories
      */
     public static Set<String> getCategories() {
-        // TODO
-        return null;
+        Set<String> result = new HashSet<>();
+        for(Item x : getAllItems()){
+            result.add(x.getCategory());
+        }
+        return result;
     }
 
     /**
@@ -128,8 +138,13 @@ public class Repository {
      * @return the items
      */
     public static List<Item> getItemsByCategory(String category) {
-        // TODO
-        return null;
+        List<Item> result = new ArrayList<>();
+        for(Item x: getAllItems()){
+            if(x.getCategory() == category){
+            result.add(x);
+            }
+        }
+        return result;
     }
 
     /**
@@ -139,7 +154,12 @@ public class Repository {
      * @return the items
      */
     public static List<Item> getItemsByCategory(String category, List<Item> masterList) {
-        // TODO
-        return null;
+        List<Item> result = new ArrayList<>();
+        for(Item x: masterList){
+            if(x.getCategory() == category){
+                result.add(x);
+            }
+        }
+        return result;
     }
 }
