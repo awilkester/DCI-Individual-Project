@@ -63,6 +63,7 @@ public class Repository {
      * @return the list of items
      */
     public static List<Item> getAllItems() {
+        // not sure why I'm keeping this, but here it is in case I need it later
 //        List<Item> result = new ArrayList<>();
 //        for(Item x: ITEM_LIST) {
 //            result.add(x);
@@ -93,7 +94,7 @@ public class Repository {
      */
     public static List<Item> getItemsByWarehouse(int warehouse) {
         List<Item> result = new ArrayList<>();
-        for(Item x : ITEM_LIST){
+        for(Item x : getAllItems()){
             if(x.getWarehouse() == warehouse){
                 result.add(x);
             }
@@ -140,7 +141,7 @@ public class Repository {
     public static List<Item> getItemsByCategory(String category) {
         List<Item> result = new ArrayList<>();
         for(Item x: getAllItems()){
-            if(x.getCategory() == category){
+            if(x.getCategory().equals(category)){
             result.add(x);
             }
         }
@@ -156,7 +157,7 @@ public class Repository {
     public static List<Item> getItemsByCategory(String category, List<Item> masterList) {
         List<Item> result = new ArrayList<>();
         for(Item x: masterList){
-            if(x.getCategory() == category){
+            if(x.getCategory().equals(category)){
                 result.add(x);
             }
         }

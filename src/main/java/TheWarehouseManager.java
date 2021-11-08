@@ -59,7 +59,7 @@ public class TheWarehouseManager {
                 searchItemAndPlaceOrder();
                 break;
             case 3:
-                //browseByCategory();
+                browseByCategory();
                 break;
             case 4:
                 quit();
@@ -74,8 +74,10 @@ public class TheWarehouseManager {
    * @return action
    */
   public boolean confirm() {
-    System.out.println("Do you want to perform another action?\n"
-            + "Type 'yes' to continue, and 'no' to quit.");
+//    do{
+        System.out.println("Do you want to perform another action?\n"
+                + "Type 'yes' to continue, and 'no' to quit.");
+//    } while(! reader.nextLine().charAt(0).equals('y'));
       return reader.nextLine().charAt(0) == 'y';
   }
 
@@ -214,12 +216,16 @@ public class TheWarehouseManager {
      */
     private int getAvailableAmount(String itemName) {
         int count = 0;
-        for(int i = 0; i < getAllItems().size(); i++){
-            if((getAllItems().get(i).getState() + " " + getAllItems().get(i).getCategory()).toLowerCase().equals(itemName)){
-                count ++;
-            }
+        for(int x : getWarehouses()){
+            count += find(itemName, x);
         }
         return count;
+//        for(int i = 0; i < getAllItems().size(); i++){
+//            if((getAllItems().get(i).getState() + " " + getAllItems().get(i).getCategory()).toLowerCase().equals(itemName)){
+//                count ++;
+//            }
+//        }
+
     }
 
     /**
@@ -282,5 +288,93 @@ public class TheWarehouseManager {
         }
         return orderAmount;
     }
+  // Show a menu of available categories. This menu will have to include a numeric code (the number
+  // the user will type in to select a category), the name of the category and the amount of items
+  // available in that category (in any warehouse).
+  //
+  // There is no list of categories in the dataset, so you will have to iterate all the stock to
+  // identify the categories and count their items.
+  //
+  // You will also have to find a way to produce a numeric identifier for each category.
+  //
+  // The menu list should show single categories (each category should only appear once).
+  //
+  // Ask the user to type the category number of their choice.
+  //
+  // List all items in that category. This time, print them one after the other (not separated by
+  // warehouse) and include the name of the warehouse at the end of each line.
+  //
+  // Be aware that the code associated to each category will be an auto-generated numeric code and
+  // the items have a text value as category. You will have to think of a way to identify each
+  // number typed by the user to the correct category name to be able to filter the stock.
 
+
+    private void browseByCategory() {
+    Map<Integer, String> menu = createCategoryMenu();
+    printCategoryMenu(menu);
+    int choice = chooseCategory();
+    printCategoryItems(choice, menu);
+  }
+
+    /**
+     * this asks for a category by string, and returns the total amount of items in
+     * any warehouse that match that category
+     * @param category
+     * @return
+     */
+    private int amountOfItemsPerCategory(String category){
+        return getItemsByCategory(category).size();
+    }
+
+    /**
+     *  creates a map of numbers and categories, retains its order of insertion.
+     * @return a linkedhashmap of categories.
+     * linkedhashmap because all that matters is order of insertion,
+     * I won't be changing it or needing to sort it after that,
+     * but I still need the order for printing out.
+     */
+    private Map<Integer, String> createCategoryMenu(){
+        Map<Integer, String> result = new LinkedHashMap<>();
+        int count = 1;
+        for(String category: getCategories()){
+            result.put(count, category);
+            count++;
+        }
+        return result;
+    }
+
+    /**
+     * prints the categorymenu with a java 10+ version for each iterator
+     * @param x
+     */
+    private void printCategoryMenu(Map<Integer, String> x){
+        for(var entry : x.entrySet()) {
+            System.out.printf("%d. %s (%d)%n", entry.getKey(), entry.getValue(), amountOfItemsPerCategory(entry.getValue()));
+        }
+    }
+
+    /**
+     *
+     * @return the chosen integer corresponding to a category
+     */
+    private int chooseCategory(){
+        int result = 0;
+        do{
+            System.out.println("Please select a category to browse by typing the number associated with the category.");
+            result = reader.nextInt();
+            reader.nextLine();
+            if(result < getCategories().size() || result > getCategories().size()){
+        System.out.println("You have typed an incorrect number.");
+            }
+        }while(result < getCategories().size() || result > getCategories().size());
+        return result;
+    }
+
+    private void printCategoryItems(int choice, Map<Integer, String> x){
+        String category = x.get(choice);
+        System.out.printf("List of %ss available:%n", category);
+        for (Item item: getItemsByCategory(category)){
+            System.out.printf("%s %s, Warehouse %d%n", item.getState(), category, item.getWarehouse());
+        }
+    }
 }
