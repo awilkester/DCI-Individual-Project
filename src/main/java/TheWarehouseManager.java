@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import main.java.data.StockRepository.*;
 
 import static main.java.data.PersonnelRepository.*;
 import static main.java.data.StockRepository.*;

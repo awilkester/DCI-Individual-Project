@@ -97,6 +97,7 @@ public class PersonnelRepository {
         }while(!isUserValid(userName, password));
     }
     public static String changeUserName(Scanner scanner){
+        //TODO fix updating the username in warehousemanager
         System.out.println("Please input your username.");
         return scanner.nextLine();
     }
