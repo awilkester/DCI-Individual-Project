@@ -6,8 +6,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import main.java.data.StockRepository.*;
 
-import static main.java.data.Repository.*;
+import static main.java.data.PersonnelRepository.*;
+import static main.java.data.StockRepository.*;
 
 /**
  * Provides necessary methods to deal through the Warehouse management actions
@@ -15,6 +17,7 @@ import static main.java.data.Repository.*;
  * @author riteshp
  */
 public class TheWarehouseManager {
+    Session session = new Session();
     // =====================================================================================
     // Member Variables
     // =====================================================================================
@@ -26,6 +29,7 @@ public class TheWarehouseManager {
     };
     // To refer the user provided name.
     private String userName;
+    private boolean validUser = false;
 
     // =====================================================================================
     // Public Member Methods
@@ -84,6 +88,13 @@ public class TheWarehouseManager {
     /** End the application */
     public void quit() {
         System.out.printf("\nThank you for your visit, %s!\n", this.userName);
+        if(session.getSessionActions().size() > 0){
+            System.out.println("In this session you have :");
+            session.listSessionActions();
+        }else{
+            System.out.println("In this session you have not done anything.");
+        }
+
         System.exit(0);
     }
 
@@ -110,20 +121,20 @@ public class TheWarehouseManager {
    * to retrieve a List<Item>. Finally, you should print each item.
    */
   private void listItemsByWarehouse() {
-      Set x = getWarehouses();
+      Set<Integer> x = getWarehouses();
       for(int i = 0; i < x.size(); i++) {
         List<Item> items = getItemsByWarehouse(i);
-        listItems(i, items);
+        this.listItems(i, items);
       }
       printNumberOfItemsByWarehouse();
-    quit();
     }
 
   private void listItems(int warehouse, List<Item> x) {
     System.out.println("Items in Warehouse " + warehouse + ": ");
       for (Item z: x){
-          System.out.println("- " + z.getState() + z.getCategory());
+          System.out.println("- " + z.toString());
       }
+      session.addToSession(1,"n/a");
   }
 
   private void printNumberOfItemsByWarehouse(){
@@ -135,20 +146,27 @@ public class TheWarehouseManager {
 
     private void searchItemAndPlaceOrder() {
     System.out.println("You've selected to search for an item and place an order for it.");
-    String itemName = askItemToOrder();
-    printAmountAvailable(itemName);
+    if(validUser){
+        String itemName = askItemToOrder();
+        printAmountAvailable(itemName);
         printLocations(itemName);
         if(getAvailableAmount(itemName) > 0){
             printMaximumAvailability(itemName);
             System.out.println("Would you like to place an order for this item?");
             if(reader.nextLine().toLowerCase().charAt(0) == 'y'){
                 askAmountAndConfirmOrder(getAvailableAmount(itemName), itemName);
-            } else{
-                quit();
+            }
         }
-        }else{
-            quit();}
+        session.addToSession(2,itemName);
+    }else{
+        if(validateUser(userName, reader)){
+            validUser = true;
+            searchItemAndPlaceOrder();
+        }
     }
+
+    }
+
 
 
     /**
@@ -168,7 +186,7 @@ public class TheWarehouseManager {
     if(getAvailableAmount(item) > 0){
         System.out.println("Location:");
         for(Item x : getAllItems()){
-            if((x.getState() + " " + x.getCategory()).toLowerCase().equals(item)){
+            if((x.toString().equals(item))){
                 System.out.println("- Warehouse " + x.getWarehouse() + " (in stock for " + daysSinceStocked(x) +" days.)");
             }
         }
@@ -193,6 +211,11 @@ public class TheWarehouseManager {
         System.out.println("Maximum Availability: " + result + " in Warehouse " + resultWarehouse);
   }
 
+    /**
+     *
+     * @param item
+     * @return
+     */
   private long daysSinceStocked(Item item){
       LocalDate date = LocalDate.now();
       LocalDate itemStockDate = item.getDateOfStock().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -203,6 +226,7 @@ public class TheWarehouseManager {
    * @return String itemName
    */
   private String askItemToOrder() {
+
     System.out.println("Please input the item you'd like to search for: ");
     return reader.nextLine().toLowerCase();
     }
@@ -220,13 +244,8 @@ public class TheWarehouseManager {
             count += find(itemName, x);
         }
         return count;
-//        for(int i = 0; i < getAllItems().size(); i++){
-//            if((getAllItems().get(i).getState() + " " + getAllItems().get(i).getCategory()).toLowerCase().equals(itemName)){
-//                count ++;
-//            }
-//        }
-
     }
+
 
     /**
      * Find the count of an item in a given warehouse
@@ -238,7 +257,7 @@ public class TheWarehouseManager {
     private int find(String item, int warehouse) {
         int count = 0;
         for(Item x: getItemsByWarehouse(warehouse)){
-            if(item.equals(x.getState().toLowerCase() + " " + x.getCategory().toLowerCase())){
+            if(item.equals(x.toString())){
                 count++;
             }
         }
@@ -251,7 +270,7 @@ public class TheWarehouseManager {
      * @return
      */
     private List<Integer> availableNumberPerWarehouse(String item){
-        Set x = getWarehouses();
+        Set<Integer> x = getWarehouses();
         List<Integer> result = new ArrayList<>();
         for(int i = 0; i < x.size(); i++){
            result.add(find(item, i));
@@ -263,7 +282,6 @@ public class TheWarehouseManager {
     private void askAmountAndConfirmOrder(int availableAmount, String item) {
         int orderAmount = getOrderAmount(availableAmount);
         System.out.println(orderAmount + " " + item + " have been ordered.");
-        quit();
             }
 
 
@@ -282,8 +300,6 @@ public class TheWarehouseManager {
                     "Would you like to order the maximum available instead? (y / n)");
             if(reader.nextLine().toLowerCase().charAt(0) == 'y'){
                 orderAmount = availableAmount;
-            }else{
-                quit();
             }
         }
         return orderAmount;
@@ -314,7 +330,8 @@ public class TheWarehouseManager {
     printCategoryMenu(menu);
     int choice = chooseCategory();
     printCategoryItems(choice, menu);
-  }
+    session.addToSession(3, menu.get(choice));
+    }
 
     /**
      * this asks for a category by string, and returns the total amount of items in
@@ -328,8 +345,8 @@ public class TheWarehouseManager {
 
     /**
      *  creates a map of numbers and categories, retains its order of insertion.
-     * @return a linkedhashmap of categories.
-     * linkedhashmap because all that matters is order of insertion,
+     * @return a LinkedHashMap of categories.
+     * LinkedHashMap because all that matters is order of insertion,
      * I won't be changing it or needing to sort it after that,
      * but I still need the order for printing out.
      */
@@ -344,7 +361,7 @@ public class TheWarehouseManager {
     }
 
     /**
-     * prints the categorymenu with a java 10+ version for each iterator
+     * prints the CategoryMenu with a java 10+ version for each iterator
      * @param x
      */
     private void printCategoryMenu(Map<Integer, String> x){
@@ -377,4 +394,7 @@ public class TheWarehouseManager {
             System.out.printf("%s %s, Warehouse %d%n", item.getState(), category, item.getWarehouse());
         }
     }
+//    public int getTotalListedItems(){
+//        return getAllItems().size();
+//    }
 }

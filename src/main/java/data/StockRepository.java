@@ -1,12 +1,12 @@
 package main.java.data;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
@@ -17,22 +17,22 @@ import org.json.simple.JSONValue;
  * The Data Repository
  *
  * @author riteshp
+ *
  */
-public class Repository {
+public class StockRepository {
 
-    private static final List<Item> ITEM_LIST = new ArrayList<>();
+    private static List<Item> ITEM_LIST = new ArrayList<Item>();
 
-    /*
-     * Load item records from the data.json file
+    /**
+     * Load item records from the stock.json file
      */
     static {
         // System.out.println("Loading items");
-        try (BufferedReader reader =
-                     new BufferedReader(
-                             new InputStreamReader(
-                                     Objects.requireNonNull(
-                                             Repository.class.getClassLoader().getResourceAsStream("data.json"))))) {
+        BufferedReader reader = null;
+        try {
+            ITEM_LIST.clear();
 
+            reader = new BufferedReader(new FileReader("src/main/resources/stock.json"));
             Object data = JSONValue.parse(reader);
             if (data instanceof JSONArray) {
                 JSONArray dataArray = (JSONArray) data;
@@ -54,21 +54,22 @@ public class Repository {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 
     /**
      * Get All items available in the repository
      *
-     * @return the list of items
+     * @return
      */
     public static List<Item> getAllItems() {
-        // not sure why I'm keeping this, but here it is in case I need it later
-//        List<Item> result = new ArrayList<>();
-//        for(Item x: ITEM_LIST) {
-//            result.add(x);
-//        }
-//        return result;
         return ITEM_LIST;
     }
 
@@ -76,91 +77,79 @@ public class Repository {
     /**
      * Get the list of unique warehouse IDs
      *
-     * @return the warehouses
+     * @return
      */
     public static Set<Integer> getWarehouses() {
-        HashSet<Integer> result = new HashSet<>();
-        for(Item x : getAllItems()) {
-            result.add(x.getWarehouse());
+        Set<Integer> warehouses = new HashSet<Integer>();
+        for (Item item : getAllItems()) {
+            warehouses.add(item.getWarehouse());
         }
-        return result;
+        return warehouses;
     }
 
     /**
      * Get the list of all items in a specific warehouse
      *
-     * @param warehouse the warehouse ID
-     * @return the items
+     * @param warehouse
+     * @return
      */
     public static List<Item> getItemsByWarehouse(int warehouse) {
-        List<Item> result = new ArrayList<>();
-        for(Item x : getAllItems()){
-            if(x.getWarehouse() == warehouse){
-                result.add(x);
-            }
-        }
-        return result;
+        return getItemsByWarehouse(warehouse, getAllItems());
     }
 
     /**
      * Get the list of items related to a specific warehouse in a given master-list
      *
-     * @param warehouse the warehouse ID
-     * @return the items
+     * @param warehouse
+     * @return
      */
     public static List<Item> getItemsByWarehouse(int warehouse, List<Item> masterList) {
-        List<Item> result = new ArrayList<>();
-        for(Item x : masterList){
-            if(x.getWarehouse() == warehouse){
-                result.add(x);
+        List<Item> items = new ArrayList<Item>();
+        for (Item item : masterList) {
+            if (item.getWarehouse() == warehouse) {
+                items.add(item);
             }
         }
-        return result;
+        return items;
     }
 
     // By Category
     /**
      * Get the list of unique Categories
      *
-     * @return the categories
+     * @return
      */
     public static Set<String> getCategories() {
-        Set<String> result = new HashSet<>();
-        for(Item x : getAllItems()){
-            result.add(x.getCategory());
+        Set<String> categories = new HashSet<String>();
+        for (Item item : getAllItems()) {
+            categories.add(item.getCategory());
         }
-        return result;
+        return categories;
     }
 
     /**
      * Get the list of all items of a specific category
      *
-     * @param category the category
-     * @return the items
+     * @param category
+     * @return
      */
     public static List<Item> getItemsByCategory(String category) {
-        List<Item> result = new ArrayList<>();
-        for(Item x: getAllItems()){
-            if(x.getCategory().equals(category)){
-            result.add(x);
-            }
-        }
-        return result;
+        return getItemsByCategory(category, getAllItems());
     }
 
     /**
      * Get the list of items of a specific category in a given master-list
      *
-     * @param category the category
-     * @return the items
+     * @param category
+     * @return
      */
     public static List<Item> getItemsByCategory(String category, List<Item> masterList) {
-        List<Item> result = new ArrayList<>();
-        for(Item x: masterList){
-            if(x.getCategory().equals(category)){
-                result.add(x);
+        List<Item> items = new ArrayList<Item>();
+        for (Item item : masterList) {
+            if (item.getCategory().equalsIgnoreCase(category)) {
+                items.add(item);
             }
         }
-        return result;
+        return items;
     }
 }
