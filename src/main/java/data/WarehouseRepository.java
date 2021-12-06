@@ -16,12 +16,14 @@ import org.json.simple.JSONValue;
 /**
  * The Data Repository
  *
- * @author riteshp
+ * @author pujanov
  *
  */
-public class StockRepository {
+public class WarehouseRepository {
 
-    private static List<Item> ITEM_LIST = new ArrayList<Item>();
+
+    private static List<Warehouse> WAREHOUSE_LIST = new ArrayList<>();
+    private static List<Integer> WAREHOUSE_IDS = new ArrayList<>();
 
     /**
      * Load item records from the stock.json file
@@ -30,7 +32,8 @@ public class StockRepository {
         // System.out.println("Loading items");
         BufferedReader reader = null;
         try {
-            ITEM_LIST.clear();
+            //ITEM_LIST.clear();
+            WAREHOUSE_LIST.clear();
 
             reader = new BufferedReader(new FileReader("src/main/resources/stock.json"));
             Object data = JSONValue.parse(reader);
@@ -42,13 +45,28 @@ public class StockRepository {
                         Item item = new Item();
                         item.setState(jsonData.get("state").toString());
                         item.setCategory(jsonData.get("category").toString());
-                        item.setWarehouse(Integer.parseInt(jsonData.get("warehouse").toString()));
                         String date = jsonData.get("date_of_stock").toString();
                         // System.out.println("Item Date " + date);
                         item.setDateOfStock(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(date));
                         // System.out.println(item);
 
-                        ITEM_LIST.add(item);
+                        int jsonWarehouseId = Integer.parseInt(jsonData.get("warehouse").toString());
+
+                        if (!WAREHOUSE_IDS.contains(jsonWarehouseId)) {
+                            WAREHOUSE_IDS.add(jsonWarehouseId);
+
+                            Warehouse warehouse = new Warehouse(jsonWarehouseId);
+                            warehouse.addItem(item);
+                            WAREHOUSE_LIST.add(warehouse);
+                        } else {
+                            for(int i=0 ; i< WAREHOUSE_LIST.size(); i++) {
+                                if(WAREHOUSE_LIST.get(i).getId() == jsonWarehouseId) {
+                                    WAREHOUSE_LIST.get(i).addItem(item);
+                                    //break;
+                                }
+                            }
+                        }
+
                     }
                 }
             }
@@ -69,48 +87,20 @@ public class StockRepository {
      *
      * @return
      */
+
     public static List<Item> getAllItems() {
-        return ITEM_LIST;
-    }
 
-    // By Warehouse
-    /**
-     * Get the list of unique warehouse IDs
-     *
-     * @return
-     */
-    public static Set<Integer> getWarehouses() {
-        Set<Integer> warehouses = new HashSet<Integer>();
-        for (Item item : getAllItems()) {
-            warehouses.add(item.getWarehouse());
-        }
-        return warehouses;
-    }
+        List<Item> allItems = new ArrayList<>();
 
-    /**
-     * Get the list of all items in a specific warehouse
-     *
-     * @param warehouse
-     * @return
-     */
-    public static List<Item> getItemsByWarehouse(int warehouse) {
-        return getItemsByWarehouse(warehouse, getAllItems());
-    }
-
-    /**
-     * Get the list of items related to a specific warehouse in a given master-list
-     *
-     * @param warehouse
-     * @return
-     */
-    public static List<Item> getItemsByWarehouse(int warehouse, List<Item> masterList) {
-        List<Item> items = new ArrayList<Item>();
-        for (Item item : masterList) {
-            if (item.getWarehouse() == warehouse) {
-                items.add(item);
+        for(int i=0; i < getWarehouseList().size(); i++) {
+            List<Item> itemsWarehouse = new ArrayList<>();
+            for(Item item : getWarehouseList().get(i).getStock()) {
+                item.setWarehouse(getWarehouseList().get(i).getId());
+                itemsWarehouse.add(item);
             }
+            allItems.addAll(itemsWarehouse);
         }
-        return items;
+        return allItems;
     }
 
     // By Category
@@ -119,8 +109,9 @@ public class StockRepository {
      *
      * @return
      */
+
     public static Set<String> getCategories() {
-        Set<String> categories = new HashSet<String>();
+        Set<String> categories = new HashSet<>();
         for (Item item : getAllItems()) {
             categories.add(item.getCategory());
         }
@@ -133,9 +124,11 @@ public class StockRepository {
      * @param category
      * @return
      */
+
     public static List<Item> getItemsByCategory(String category) {
         return getItemsByCategory(category, getAllItems());
     }
+
 
     /**
      * Get the list of items of a specific category in a given master-list
@@ -144,12 +137,16 @@ public class StockRepository {
      * @return
      */
     public static List<Item> getItemsByCategory(String category, List<Item> masterList) {
-        List<Item> items = new ArrayList<Item>();
+        List<Item> items = new ArrayList<>();
         for (Item item : masterList) {
             if (item.getCategory().equalsIgnoreCase(category)) {
                 items.add(item);
             }
         }
         return items;
+    }
+
+    public static List<Warehouse> getWarehouseList(){
+        return WAREHOUSE_LIST;
     }
 }

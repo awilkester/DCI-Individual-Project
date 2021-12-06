@@ -1,15 +1,16 @@
 package main.java;
 
-import main.java.data.Item;
+import main.java.data.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import main.java.data.StockRepository.*;
 
-import static main.java.data.PersonnelRepository.*;
-import static main.java.data.StockRepository.*;
+import static main.java.TheWarehouseApp.IS_EMPLOYEE;
+import static main.java.TheWarehouseApp.SESSION_USER;
+import static main.java.data.UserRepository.*;
+import static main.java.data.WarehouseRepository.*;
 
 /**
  * Provides necessary methods to deal through the Warehouse management actions
@@ -17,7 +18,8 @@ import static main.java.data.StockRepository.*;
  * @author riteshp
  */
 public class TheWarehouseManager {
-    Session session = new Session();
+
+
     // =====================================================================================
     // Member Variables
     // =====================================================================================
@@ -27,19 +29,30 @@ public class TheWarehouseManager {
     private final String[] userOptions = {
             "1. List items by warehouse", "2. Search an item and place an order", "3. Browse by category", "4. Quit"
     };
-    // To refer the user provided name.
-    private String userName;
+
+    public static final Session session = new Session();
     private boolean validUser = false;
 
-    // =====================================================================================
-    // Public Member Methods
-    // =====================================================================================
+  // =====================================================================================
+  // Public Member Methods
+  // =====================================================================================
 
-    /** Welcome User */
-    public void welcomeUser() {
-        this.seekUserName();
-        this.greetUser();
+  /** Welcome User */
+  public void welcomeUser() {
+        SESSION_USER.setName(seekUserName());
+        if(isUserEmployee(SESSION_USER.getName())){
+            String password = askPassword(SESSION_USER.getName(), reader);
+            SESSION_USER = new Employee(SESSION_USER.getName(), password);
+            if(validateUser(SESSION_USER.getName(), reader, password)){
+                validUser = true;
+            }
+        } else {
+            SESSION_USER = new Guest();
+        }
+      SESSION_USER.greet();
     }
+
+
 
     /** Ask for user's choice of action */
     public int getUsersChoice() {
@@ -77,24 +90,18 @@ public class TheWarehouseManager {
    *
    * @return action
    */
-  public boolean confirm() {
+  public boolean confirm(String message) {
 //    do{
-        System.out.println("Do you want to perform another action?\n"
-                + "Type 'yes' to continue, and 'no' to quit.");
+        System.out.printf("%s%n Type 'yes' to continue, and 'no' to quit.",message);
 //    } while(! reader.nextLine().charAt(0).equals('y'));
       return reader.nextLine().charAt(0) == 'y';
   }
 
+
+
     /** End the application */
     public void quit() {
-        System.out.printf("\nThank you for your visit, %s!\n", this.userName);
-        if(session.getSessionActions().size() > 0){
-            System.out.println("In this session you have :");
-            session.listSessionActions();
-        }else{
-            System.out.println("In this session you have not done anything.");
-        }
-
+        SESSION_USER.bye(SESSION_USER.getName());
         System.exit(0);
     }
 
@@ -103,15 +110,11 @@ public class TheWarehouseManager {
     // =====================================================================================
 
     /** Get user's name via CLI */
-    private void seekUserName() {
+    private String seekUserName() {
     System.out.println("Welcome to Andrew's Warehouse Manager App. Please input your name to continue: ");
-    userName = reader.nextLine();
+    return reader.nextLine();
     }
 
-    /** Print a welcome message with the given user's name */
-    private void greetUser() {
-    System.out.println("Hello " + userName + "!");
-    }
 
   /**
    * It should use the Repository.getWarehouses() method, which should
@@ -121,10 +124,8 @@ public class TheWarehouseManager {
    * to retrieve a List<Item>. Finally, you should print each item.
    */
   private void listItemsByWarehouse() {
-      Set<Integer> x = getWarehouses();
-      for(int i = 0; i < x.size(); i++) {
-        List<Item> items = getItemsByWarehouse(i);
-        this.listItems(i, items);
+      for(Warehouse x : getWarehouseList()) {
+        listItems(x.getId(), x.getStock());
       }
       printNumberOfItemsByWarehouse();
     }
@@ -139,8 +140,8 @@ public class TheWarehouseManager {
 
   private void printNumberOfItemsByWarehouse(){
     System.out.println();
-    for(int x: getWarehouses()){
-      System.out.println("Total items in warehouse " + x + ": " + getItemsByWarehouse(x).size());
+    for(Warehouse x: getWarehouseList()){
+      System.out.printf("Total items in warehouse %s: %d%n",x.getId(), x.occupancy());
     }
   }
 
@@ -159,15 +160,18 @@ public class TheWarehouseManager {
         }
         session.addToSession(2,itemName);
     }else{
-        if(validateUser(userName, reader)){
-            validUser = true;
-            searchItemAndPlaceOrder();
+        if(!IS_EMPLOYEE){
+
+            if(validateUser(SESSION_USER.getName(), reader, askPassword(SESSION_USER.getName(), reader))){
+                validUser = true;
+                searchItemAndPlaceOrder();
+            }
+        } else{
+            SESSION_USER.setName(changeUserName(reader));
         }
-    }
 
     }
-
-
+    }
 
     /**
      *
@@ -240,26 +244,8 @@ public class TheWarehouseManager {
      */
     private int getAvailableAmount(String itemName) {
         int count = 0;
-        for(int x : getWarehouses()){
-            count += find(itemName, x);
-        }
-        return count;
-    }
-
-
-    /**
-     * Find the count of an item in a given warehouse
-     *
-     * @param item the item (as a concatenation of the state and the category from the Item class)
-     * @param warehouse the warehouse (as an int now, from getWarehouses set)
-     * @return count
-     */
-    private int find(String item, int warehouse) {
-        int count = 0;
-        for(Item x: getItemsByWarehouse(warehouse)){
-            if(item.equals(x.toString())){
-                count++;
-            }
+        for(Warehouse x : getWarehouseList()){
+            count += x.search(itemName).size();
         }
         return count;
     }
@@ -270,10 +256,9 @@ public class TheWarehouseManager {
      * @return
      */
     private List<Integer> availableNumberPerWarehouse(String item){
-        Set<Integer> x = getWarehouses();
-        List<Integer> result = new ArrayList<>();
-        for(int i = 0; i < x.size(); i++){
-           result.add(find(item, i));
+        List<Integer> result = new ArrayList<>(getWarehouseList().size());
+        for(Warehouse x : getWarehouseList()){
+            result.add(x.search(item).size());
         }
         return result;
     }
@@ -281,8 +266,7 @@ public class TheWarehouseManager {
     /** Ask order amount and confirm order */
     private void askAmountAndConfirmOrder(int availableAmount, String item) {
         int orderAmount = getOrderAmount(availableAmount);
-        System.out.println(orderAmount + " " + item + " have been ordered.");
-            }
+        System.out.printf("%d %s have been ordered.%n", orderAmount, item);}
 
 
     /**
@@ -394,7 +378,5 @@ public class TheWarehouseManager {
             System.out.printf("%s %s, Warehouse %d%n", item.getState(), category, item.getWarehouse());
         }
     }
-//    public int getTotalListedItems(){
-//        return getAllItems().size();
-//    }
+
 }

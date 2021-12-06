@@ -1,15 +1,12 @@
 package main.java;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import static main.java.data.StockRepository.getAllItems;
+import static main.java.TheWarehouseApp.SESSION_ACTIONS;
+import static main.java.data.WarehouseRepository.getAllItems;
 
 public class Session {
-    private static List<String> SESSION_ACTIONS = new LinkedList<>();
-
-
 
     public void addToSession(int x, String name){
         switch(x){
@@ -30,7 +27,7 @@ public class Session {
     public void listSessionActions(){
         int counter = 1;
         for(String x: getSessionActions()){
-            System.out.printf("%d. %s", counter, x);
+            System.out.printf("%d. %s%n", counter, x);
             counter++;
         }
     }
